@@ -1,0 +1,6 @@
+<webscript>
+   <shortname>Site Task Manager</shortname>
+   <description>Dashlet to list tasks associated with a Share site</description>
+   <family>site-dashlet</family>
+   <url>/formtek/components/dashlets/sitetaskmgr</url>
+</webscript>

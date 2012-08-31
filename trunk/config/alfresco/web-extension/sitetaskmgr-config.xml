@@ -1,0 +1,9 @@
+<alfresco-config>
+
+  <config evaluator="string-compare" condition="Workflow">
+     <hidden-workflows> 
+         <workflow name="activiti$FTKSiteTaskManager"/>
+     </hidden-workflows>
+  </config>
+
+</alfresco-config>

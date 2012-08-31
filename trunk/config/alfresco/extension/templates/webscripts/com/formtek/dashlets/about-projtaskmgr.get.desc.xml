@@ -1,0 +1,7 @@
+<webscript>
+   <shortname>Formtek Project Task Manager Dashlet</shortname>
+   <description>Project Task Manager for Alfresco Share</description>
+   <url>/api/formtek/dashlet/projtaskmgr/about</url>
+   <format default="json"/>
+   <authentication>none</authentication>
+</webscript>
