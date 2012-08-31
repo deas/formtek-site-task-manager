@@ -1,0 +1,105 @@
+/* Toolbars */
+
+.sitetaskmgr .toolbar .yui-pg-container,
+.sitetaskmgr .toolbar .yui-pg-container .yui-pg-current
+{
+   line-height: 2;
+   margin: 0 0 0 0.3em;
+   padding: 0;
+}
+
+/* Body */
+
+.sitetaskmgr .body h4
+{
+   margin-bottom: 0.2em;
+}
+
+.sitetaskmgr .body .unassigned-task
+{
+   padding: 0.15em;
+   text-transform: uppercase;
+   font-size: 80%;
+}
+
+/* Data Table */
+
+.sitetaskmgr .yui-dt-col-isPooled div
+{
+   text-align: center   
+}
+
+.sitetaskmgr .yui-dt-col-isPooled img
+{
+   margin-bottom: 0.5em;
+}
+
+.sitetaskmgr .yui-dt-col-title .yui-dt-liner
+{
+   line-height: 1.4;
+   padding-top: 0;
+}
+
+.sitetaskmgr .task-delayed
+{
+   padding-left: 1.5em;
+   background: url(../images/warning-16.png) no-repeat; 
+}
+
+.sitetaskmgr a.view-task,
+.sitetaskmgr a.edit-task
+{
+   cursor: pointer;
+   padding: 1em 0.75em;
+   visibility: hidden;
+}
+
+.sitetaskmgr a.view-task
+{
+   background: url(../images/task-16.png) no-repeat center;
+}
+
+.sitetaskmgr a.edit-task
+{
+   background: url(../images/edit-16.png) no-repeat center;
+}
+
+.sitetaskmgr .yui-dt-col-name a:active,
+.sitetaskmgr .yui-dt-col-name a:hover
+{
+   text-decoration: none;
+}
+
+.sitetaskmgr .yui-dt-highlighted a
+{
+   visibility: visible;
+}
+
+.sup_mandatory
+{
+    font-size:xx-small; 
+    vertical-align:top;
+    color: red;
+} 
+
+
+.col-align-right 
+{
+    text-align:right !important;
+}
+.col-align-center 
+{
+    text-align:center !important;
+}
+.col-align-left 
+{
+    text-align:left !important;
+}
+
+.center-paginator
+{
+    text-align: center;
+}
+
+
+

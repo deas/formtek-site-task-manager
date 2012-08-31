@@ -1,0 +1,32 @@
+.returnwf
+{
+   background: url(images/return-action-16.png) no-repeat scroll 12px 4px transparent !important;
+   padding-left: 22px;
+}
+.returnwfmarker
+{
+}
+
+.form-dialog .bd 
+{
+	 padding: 10px 10px 10px 10px !important;
+	 width: 800px !important;
+}
+.form-dialog .hd 
+{
+	 width: 800px !important;
+}
+.form-dialog .form-field 
+{
+	 text-align: left !important;
+}
+form-dialog .form-container .form-fields
+{
+	padding: 1em 1em 0 !important;
+	width: 800px !important;
+	border: 1px solid #C2C2C2 !important;
+	background-color: #F5FFF2;
+}
+
+
+
