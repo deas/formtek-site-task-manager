@@ -1,0 +1,172 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Define the Custom Content Model needed for managing Workflows in the Formtek Site Task Manager -->
+<model name="stmwf:workflowmodel"
+    xmlns="http://www.alfresco.org/model/dictionary/1.0">
+
+    <description>Site Task Manager Workflow Custom Content Model</description>
+    <author>Dick Weisinger</author>
+    <version>1.0</version>
+
+    <imports>
+        <import uri="http://www.alfresco.org/model/dictionary/1.0"
+            prefix="d" />
+        <import uri="http://www.alfresco.org/model/bpm/1.0"
+            prefix="bpm" />
+        <import uri="http://www.alfresco.org/model/workflow/1.0" 
+            prefix="wf"/>
+    </imports>
+
+    <!--  stmwf - Site Task Manager Work Flow -->
+    <namespaces>
+        <namespace uri="http://www.formtek.com/model/dashlet/sitetaskmgr/wf/1.0" prefix="stmwf" />
+    </namespaces>
+    
+    <constraints>
+       <constraint name="stmwf:burdenList" type="LIST">
+           <parameter name="allowedValues">
+               <list>
+                   <value>Big</value>
+                   <value>Medium</value>
+                   <value>Small</value>
+               </list>
+           </parameter>
+       </constraint>
+    </constraints>
+
+    <types>                           
+      <type name="stmwf:submitSiteTask">
+         <parent>bpm:startTask</parent>
+         <properties>
+            <property name="stmwf:siteName">
+               <title>Track the site this WF belongs to</title>
+               <type>d:text</type> 
+               <default>Formtek</default>
+            </property>
+         </properties>
+         <mandatory-aspects>
+            <aspect>bpm:assignee</aspect>
+            <aspect>stmwf:wfProps</aspect>
+         </mandatory-aspects>
+      </type>
+      
+      <type name="stmwf:basesiteTaskMgrWF">
+         <parent>wf:activitiReviewTask</parent>
+         <properties>
+            <property name="stmwf:previousComment">
+               <title>Placeholder to display comment from previous task</title>
+               <type>d:text</type> 
+            </property>
+            <property name="stmwf:wfName">
+               <title>Placeholder to display workflow name at Task Level</title>
+               <type>d:text</type> 
+            </property>
+         </properties>
+         <overrides>
+            <property name="bpm:packageActionGroup">
+                <default>add_package_item_actions</default>
+            </property>
+            <property name="bpm:packageItemActionGroup">
+                <default>edit_and_remove_package_item_actions</default>
+            </property>
+         </overrides>
+         <mandatory-aspects>
+            <aspect>stmwf:wfProps</aspect>
+            <aspect>bpm:assignee</aspect>
+         </mandatory-aspects>
+      </type>
+      
+      
+      <type name="stmwf:assignedTask">
+         <parent>stmwf:basesiteTaskMgrWF</parent>
+         <properties>
+             <property name="stmwf:taskOutcome">
+                 <type>d:text</type>
+                 <default>Task Completed</default>
+                 <constraints>
+                     <constraint name="stmwf:taskOutcomeOptions" type="LIST">
+                         <parameter name="allowedValues">
+                             <list>
+                                 <value>Task Completed</value>
+                             </list>
+                         </parameter>
+                     </constraint>
+                 </constraints>
+             </property>
+        </properties>
+        <overrides>
+            <property name="bpm:outcomePropertyName">
+                <default>{http://www.formtek.com/model/dashlet/sitetaskmgr/wf/1.0}taskOutcome</default>
+            </property>
+        </overrides>
+      </type>      
+      
+      
+       <type name="stmwf:doneTask">
+         <parent>stmwf:basesiteTaskMgrWF</parent>
+         <properties>
+             <property name="stmwf:doneOutcome">
+                 <type>d:text</type>
+                 <default>Return to Assignee</default>
+                 <constraints>
+                     <constraint name="stmwf:doneOutcomeOptions" type="LIST">
+                         <parameter name="allowedValues">
+                             <list>
+                                 <value>Return to Assignee</value>
+                                 <value>Archive</value>
+                             </list>
+                         </parameter>
+                     </constraint>
+                 </constraints>
+             </property>
+        </properties>
+        <overrides>
+            <property name="bpm:outcomePropertyName">
+                <default>{http://www.formtek.com/model/dashlet/sitetaskmgr/wf/1.0}doneOutcome</default>
+            </property>
+        </overrides>
+      </type>
+      
+       <type name="stmwf:archivedTask">
+         <parent>stmwf:basesiteTaskMgrWF</parent>
+         <properties>
+             <property name="stmwf:archiveOutcome">
+                 <type>d:text</type>
+                 <default>Remove from Archive</default>
+                 <constraints>
+                     <constraint name="stmwf:archiveOutcomeOptions" type="LIST">
+                         <parameter name="allowedValues">
+                             <list>
+                                 <value>Remove from Archive</value>
+                             </list>
+                         </parameter>
+                     </constraint>
+                 </constraints>
+             </property>
+        </properties>
+        <overrides>
+            <property name="bpm:outcomePropertyName">
+                <default>{http://www.formtek.com/model/dashlet/sitetaskmgr/wf/1.0}doneOutcome</default>
+            </property>
+        </overrides>
+      </type>
+
+    </types>
+    
+    <aspects>
+        <aspect name="stmwf:wfProps">
+            <title>Properties comment to Definition and Tasks</title>
+            <properties>
+               <property name="stmwf:burden">
+                  <title>Set the level of expected difficulty for the task, the burden</title>
+                  <type>d:text</type> 
+                  <default>Medium</default>
+                  <constraints>
+                     <constraint ref="stmwf:burdenList" />
+                  </constraints>
+               </property>
+            </properties>
+        </aspect>
+    </aspects>
+
+</model>
+

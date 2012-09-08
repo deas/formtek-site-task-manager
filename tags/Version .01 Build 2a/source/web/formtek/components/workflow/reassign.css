@@ -1,0 +1,55 @@
+.task-reassign
+{
+   clear: both;
+   padding: 0;
+   min-height: 4em;
+}
+
+.task-reassign.task-reassign-panel.yui-panel
+{
+   margin: 0;
+}
+
+.thin-borders
+{
+   border-width: thin !important;
+}
+
+.task-reassign.task-reassign-panel.yui-panel .people-finder.list
+{
+   margin: 0;
+   padding: 0.1em 0 0.7em 0;
+}
+
+.task-reassign.task-reassign-panel.yui-panel .people-finder.list .title
+{
+   display:none;
+}
+
+.task-reassign .actions
+{
+   float: right;
+}
+
+.task-reassign h1
+{
+   float: left;
+}
+
+.task-reassign .unassigned-message
+{
+   margin-bottom: 1em;
+   padding: 0.5em 1em;
+}
+
+.task-reassign .unassigned-message span
+{
+   background: left no-repeat url(../images/info-16.png);
+   padding: 1em 2em;
+}
+
+.task-reassign .clear
+{
+   clear: both;
+}
+

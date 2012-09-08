@@ -1,0 +1,5 @@
+<webscript>
+  <shortname>Site Task Manager Configuration</shortname>
+  <description>Configuration dialog for Formtek Site Task Manager dashlet</description>
+  <url>/formtek/modules/dashlet/sitetaskmgr/config?site={site?}</url>
+</webscript>

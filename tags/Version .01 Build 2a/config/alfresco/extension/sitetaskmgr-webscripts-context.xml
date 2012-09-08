@@ -1,0 +1,39 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!DOCTYPE beans PUBLIC '-//SPRING//DTD BEAN//EN' 'http://www.springframework.org/dtd/spring-beans.dtd'>
+
+<beans>
+    <!-- Lists the task instances, filtered by site, task owner and state. -->
+    <bean id="webscript.com.formtek.dashlets.query-site-wftasks.get"
+          class="com.formtek.dashlets.sitetaskmgr.SiteTaskInstancesGet"
+          parent="abstractWorkflowWebScript">
+    </bean>
+    <!-- Update a property of the current site workflow task. -->
+    <bean id="webscript.com.formtek.dashlets.update-wftask-properties.put"
+          class="com.formtek.dashlets.sitetaskmgr.SiteTaskInstancePut"
+          parent="abstractWorkflowWebScript">
+    </bean>
+    <!-- Either cancels or deletes the specified site workflow instance. -->
+    <bean id="webscript.com.formtek.dashlets.cancel-workflow-instance.delete"
+          class="com.formtek.dashlets.sitetaskmgr.SiteWorkflowInstanceDelete"
+          parent="abstractWorkflowWebScript">
+    </bean>
+    <!-- Signal the transition of the Workflow path to move to the next specified node. -->
+    <bean id="webscript.com.formtek.dashlets.end-task.get"
+          class="com.formtek.dashlets.sitetaskmgr.SiteEndTask"
+          parent="abstractWorkflowWebScript">
+    </bean>
+    
+    <!-- Use 'hasSiteEditAccess' to determine if user has rights to update a site workflow -->
+    <!-- Sets up a custom Javascript method -->
+     <bean id="hasSiteWFPrivilege" parent="baseJavaScriptExtension" class="com.formtek.dashlets.sitetaskmgr.HasSiteWFPrivilege">
+          <property name="workflowService" ref="WorkflowService" />
+          <property name="authorityService" ref="AuthorityService"/>
+          <property name="authenticationService" ref="AuthenticationService" />
+          <property name="nodeService" ref="NodeService" />
+          <property name="extensionName">
+              <value>ftkworkflow</value>
+          </property>
+     </bean>
+
+
+</beans>
