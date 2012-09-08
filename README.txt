@@ -35,4 +35,9 @@ Note that there are 12 columns used in the site task list.  That can be a lot an
 You can resize, reorder and hide some of the columns to show only the information that most interest you and which also shrinks down the width of the dashlet.
 Resize, reorder and hide information will then be saved as your preferences.
 
+There is a standard dashlet configuration dialog available from the upper right side of the dashlet.
+If you click on that, each site user is able to configure some of their preferences for how the task list is displayed.
+Available on that dialog is an option to select the number of rows per page and to select which columns you would like to hide.
+By default, the column called "Previous Comment" is hidden.
+
 
