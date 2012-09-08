@@ -1,0 +1,22 @@
+<webscript>
+   <shortname>Delete or Cancel Workflow Instance</shortname>
+   <description>Either cancels or deletes the specified workflow instance based on site privileges. To cancel call with no arguments, to delete set the forced argument to true.</description>
+   <url>/api/formtek/dashlet/projtaskmgr/workflow-instances/{workflow_instance_id}?site={site}&amp;forced={forced?}</url>
+   <format default="json"/>
+   <authentication runas="admin">user</authentication>
+   <transaction>required</transaction>
+   <args>
+      <arg>
+         <shortname>workflow_instance_id</shortname>
+         <description>The id of workflow process instance to delete or cancel.</description>
+      </arg>
+      <arg>
+         <shortname>site</shortname>
+         <description>The site</description>
+      </arg>
+      <arg>
+         <shortname>forced</shortname>
+         <description>Setting this argument to true will delete the workflow instance, if it is false or omitted the workflow instance will be cancelled.</description>
+      </arg>
+   </args>
+</webscript>

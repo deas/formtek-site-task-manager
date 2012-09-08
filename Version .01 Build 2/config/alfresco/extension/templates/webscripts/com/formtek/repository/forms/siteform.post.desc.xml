@@ -1,0 +1,9 @@
+<webscript>
+  <shortname>Override Standard Alfresco Form Persistence</shortname>
+  <description>Authenticates for Site WF access.  Then handles the submission of the form.  Data can be POSTed as JSON or multipart/form-data.</description>
+  <url>/api/formtek/{wfId}/{site}/{item_kind}/{item_id}/sitetaskformprocessor</url>
+  <format default="json" />
+  <authentication runas="admin">user</authentication>
+  <transaction>required</transaction>
+  <lifecycle>internal</lifecycle>
+</webscript>
