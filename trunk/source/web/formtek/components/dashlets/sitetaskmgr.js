@@ -148,7 +148,7 @@
                      {
                          try
                          {
-                             var colPref = p_response.json.com.formtek.sitetaskmgr.preferences.ad1test.colstate;
+                             var colPref = p_response.json.com.formtek.sitetaskmgr.preferences[Alfresco.constants.SITE].colstate;
                              this.options.colState = eval('(' + colPref + ')');
                          }
                          catch(ex){}
