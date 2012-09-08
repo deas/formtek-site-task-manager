@@ -229,23 +229,22 @@
          // Change the display location of the dialog to be near top
          dialogDiv.parentNode.style.top = "50px"; 
          
-         // Remove the close button in upper right for now
+         // Hook into the close button in the upper right square to close
          var closebutton = Dom.getElementsByClassName('container-close', 'a', Dom.get('alfresco-FormDialog-instance-dialog'));
          if(closebutton!=null && closebutton.length>0)
          {
-             var cancelelem = new YAHOO.util.Element( closebutton );
-             this.widgets.closebutton = cancelelem;
              var handleCancelClick = function(e) 
              {
                  this.onCancelButtonClick();         
              };
+             var cancelelem = new YAHOO.util.Element( closebutton );
+             this.widgets.closebutton = cancelelem;
              cancelelem.on('click', handleCancelClick, null, this);
              this.widgets.cancelelemfunc = handleCancelClick;
          }
 
-      },
 
-         
+      },   
       
       /**
        * Fired when the user clicks the cancel button.
@@ -256,7 +255,7 @@
        */
       onCancelButtonClick: function FD_onCancelButtonClick()
       {
-         YAHOO.Bubbling.fire("formDialogSuccessClose", {});
+         YAHOO.Bubbling.fire("formDialogSuccessCancel", {});
           
          // Hide the panel
          this.widgets.panel.hide();
@@ -316,7 +315,17 @@
                      );
                  };
              }
+                             
+             // Override the cancel button behavior of the dialog -- it will try to navigate back to a previous page
+             var cancelbutton = formui.buttons.cancel;
+             cancelbutton.removeListener("click");
+             cancelbutton.on('click', function(e) 
+             {
+                 var me = Alfresco.util.ComponentManager.get(this.parentId);     
+                 me.onCancelButtonClick()
+             }, null, formui);
           }
+          
          
          // Tell listenees that the popup form dialog is available
          YAHOO.Bubbling.fire("formDialogFormAvailable",

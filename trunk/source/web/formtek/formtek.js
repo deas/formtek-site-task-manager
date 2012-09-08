@@ -51,3 +51,11 @@ Formtek.module = Formtek.module || {};
  * @class Formtek.dashlet
  */
 Formtek.dashlet = Formtek.dashlet || {};
+
+/**
+ * Formtek top-level component namespace.
+ * 
+ * @namespace Formtek
+ * @class Formtek.component
+ */
+Formtek.component = Formtek.component || {};

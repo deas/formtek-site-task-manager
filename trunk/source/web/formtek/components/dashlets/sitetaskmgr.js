@@ -39,9 +39,10 @@
    var $html = Alfresco.util.encodeHTML,
        $siteURL = Alfresco.util.siteURL;
    /**
-    * Preferences
+    * Preferences -- unique for each site
     */
-   var PREFERENCES_TASKS_DASHLET_FILTER = "com.formtek.sitetaskmgr.preferences.filter";
+   var PREFERENCES_TASKS_DASHLET_FILTER = "com.formtek.sitetaskmgr.preferences." + Alfresco.constants.SITE + ".filter";
+   var PREFERENCES_TASKS_DASHLET_COLSTATE = "com.formtek.sitetaskmgr.preferences." + Alfresco.constants.SITE + ".colstate";
 
    /**
     * Dashboard Formtek Site Task Manager constructor.
@@ -53,7 +54,7 @@
    Formtek.dashlet.SiteTaskMgr = function SiteTaskMgr_constructor(htmlId)
    {
       Formtek.dashlet.SiteTaskMgr.superclass.constructor.call(this, 
-         "Formtek.dashlet.SiteTaskMgr", htmlId, ["button", "container", "datasource", "datatable", "paginator", "history", "animation"]);
+         "Formtek.dashlet.SiteTaskMgr", htmlId, ["button", "container", "datasource", "datatable", "paginator", "history", "animation", "dragdrop", "event"]);
 
       // Services
       this.services.preferences = new Alfresco.service.Preferences();
@@ -107,7 +108,15 @@
           * @property filters
           * @type Object
           */
-         filters: {}
+         filters: {},
+         
+         /**
+          * State of the columns.  The ordering and width
+          *
+          * @property filters
+          * @type List
+          */
+         colState: []
       },
 
       /**
@@ -125,15 +134,45 @@
             lazyloadmenu: false
          });
 
-         //     Load preferences (after which the appropriate tasks will be displayed)
-         this.services.preferences.request(PREFERENCES_TASKS_DASHLET_FILTER,
+         //     Load column state preferences
+         this.services.preferences.request(PREFERENCES_TASKS_DASHLET_COLSTATE,
          {
             successCallback:
             {
-               fn: this.onPreferencesLoaded,
+               fn: function(p_response)
+               {
+                     // Extract the column state preferences
+                     //   Alfresco preferences failed when saving an array.
+                     //   Store data as a string and recover with eval
+                     if(typeof p_response.json.com != "undefined")
+                     {
+                         try
+                         {
+                             var colPref = p_response.json.com.formtek.sitetaskmgr.preferences.ad1test.colstate;
+                             this.options.colState = eval('(' + colPref + ')');
+                         }
+                         catch(ex){}
+                     }
+                     
+                     //     Load filter preferences
+                     this.services.preferences.request(PREFERENCES_TASKS_DASHLET_FILTER,
+                     {
+                        successCallback:
+                        {
+                           fn: this.onPreferencesLoaded,
+                           scope: this
+                        }
+                     });
+               },
                scope: this
             }
          });
+             
+         // Initialize the no items message
+         this.renderNoItemsMessage();
+             
+         // Make sure we listen for events when the user selects a person
+         YAHOO.Bubbling.on("personSelected", this.onPersonSelected, this);
       },
       
       /**
@@ -156,7 +195,7 @@
          // Prepare webscript url to task instances
          var webscript = YAHOO.lang.substitute("api/formtek/dashlets/sitemgr/site-task-instances?site={site}&properties={properties}&exclude={exclude}&",
          {
-            properties: ["bpm_priority", "bpm_status", "bpm_dueDate", "bpm_description", 
+            properties: ["bpm_priority", "bpm_status", "bpm_dueDate", "bpm_description", "bpm_comment",
                          "stmwf_burden", "bpm_percentComplete", "bpm_assignee", "stmwf_previousComment"].join(","),
             exclude: '',
             site: Alfresco.constants.SITE
@@ -179,14 +218,60 @@
       
               // Listen for when the popup form dialog closes to know when to refresh
               YAHOO.Bubbling.on("formDialogSuccessClose", this.onNewTaskFormClose, this);
-                  
-              // Listen for when the popup form dialog closes to know when to refresh
-              YAHOO.Bubbling.on("formDialogCancel", this.onNewTaskFormCancel, this);
+
            },
            {
               newTaskLink: newTaskLink
            }, this);
          }
+         
+         var colDefsDefault = 
+         [
+              { key: "state", resizeable:true, sortable: true, formatter: this.bind(this.renderCellState), className: 'col-align-center', label: this.msg("label.datatable.state")},
+              { key: "priority", resizeable:true, sortable: true, formatter: this.bind(this.renderCellPriority), className: 'col-align-center', label: this.msg("label.datatable.priority") },
+              { key: "burden", resizeable:true, sortable: true, formatter: this.bind(this.renderCellBurden), className: 'col-align-center', label: this.msg("label.datatable.burden") },
+              { key: "name", resizeable:true, sortable: true, formatter: this.bind(this.renderCellTaskName), className: 'col-align-left', width: 200, label: this.msg("label.datatable.name") },
+              { key: "comment", resizeable:true, sortable: true, formatter: this.bind(this.renderCellComment), className: 'col-align-left', width: 200, label: this.msg("label.datatable.comment") },
+              { key: "prevcomment", hidden: true, resizeable:true, sortable: true, formatter: this.bind(this.renderCellPrevComment), className: 'col-align-left', width: 200, label: this.msg("label.datatable.prevcomment") },
+              { key: "assignee", resizeable:true, sortable: true, formatter: this.bind(this.renderCellAssignee), className: 'col-align-left', label: this.msg("label.datatable.assignee")},
+              { key: "initiator", resizeable:true, sortable: true, formatter: this.bind(this.renderCellInitiator), className: 'col-align-left', label: this.msg("label.datatable.initiator") },
+              { key: "percent", resizeable:true, sortable: true, formatter: this.bind(this.renderCellPercent), className: 'col-align-right', label: this.msg("label.datatable.percent") },
+              { key: "created", resizeable:true, sortable: true, formatter: this.bind(this.renderCellCreated), className: 'col-align-left', width: 110, label: this.msg("label.datatable.created") },
+              { key: "due", resizeable:true, sortable: true, formatter: this.bind(this.renderCellDueDate), className: 'col-align-left', width: 110, label: this.msg("label.datatable.due") },
+              { key: "actions", resizeable:true, sortable: false, formatter: this.bind(this.renderCellActions), className: 'col-align-left', width: 125, label: this.msg("label.datatable.actions") }
+           ];
+           
+           // Reorder and resize the columns, based on the user preferences for the datatable on this site
+           var colDefs = [];  colDefs.length = colDefsDefault.length;
+           if(this.options.colState!=null && this.options.colState.length>0)
+           {
+               for(var mm=0; mm<this.options.colState.length; mm++)
+               {
+                   for(var nn=0; nn<this.options.colState.length; nn++)
+                   {
+                       if(colDefsDefault[nn].key == this.options.colState[mm].key)
+                       {
+                          colDefs[mm] = colDefsDefault[nn];
+                          if(!isNaN(this.options.colState[mm].width)) colDefs[mm].width = this.options.colState[mm].width;
+                          if(this.options.colState[mm].hidden=="true")
+                          {
+                              colDefs[mm].hidden = true;
+                          }
+                          else
+                          {
+                              colDefs[mm].hidden = false;
+                          }
+                       }
+                   }
+               }
+           }
+           else
+           {
+               colDefs = colDefsDefault;
+           }
+           
+           var orig_formatters = [];  orig_formatters.length = colDefs.length;
+           for(var i=0; i<colDefs.length; i++) orig_formatters[i] = colDefs[i].formatter;
          
 
          /**
@@ -202,23 +287,11 @@
             dataTable:
             {
                container: this.id + "-tasks",
-               columnDefinitions:
-               [
-                  { key: "state", sortable: true, formatter: this.bind(this.renderCellState), className: 'col-align-center', label: this.msg("label.datatable.state")},
-                  { key: "priority", sortable: true, formatter: this.bind(this.renderCellPriority), className: 'col-align-center', label: this.msg("label.datatable.priority") },
-                  { key: "burden", sortable: true, formatter: this.bind(this.renderCellBurden), className: 'col-align-center', label: this.msg("label.datatable.burden") },
-                  { key: "name", sortable: true, formatter: this.bind(this.renderCellTaskName), className: 'col-align-left', label: this.msg("label.datatable.name") },
-                  { key: "comment", sortable: true, formatter: this.bind(this.renderCellComment), className: 'col-align-left', label: this.msg("label.datatable.comment") },
-                  { key: "assignee", sortable: true, formatter: this.bind(this.renderCellAssignee), className: 'col-align-left', label: this.msg("label.datatable.assignee")},
-                  { key: "initiator", sortable: true, formatter: this.bind(this.renderCellInitiator), className: 'col-align-left', label: this.msg("label.datatable.initiator") },
-                  { key: "percent", sortable: true, formatter: this.bind(this.renderCellPercent), className: 'col-align-right', label: this.msg("label.datatable.percent") },
-                  { key: "created", sortable: true, formatter: this.bind(this.renderCellCreated), className: 'col-align-left', label: this.msg("label.datatable.created") },
-                  { key: "due", sortable: true, formatter: this.bind(this.renderCellDueDate), className: 'col-align-left', label: this.msg("label.datatable.due") },
-                  { key: "actions", sortable: false, formatter: this.bind(this.renderCellActions), className: 'col-align-left', label: this.msg("label.datatable.actions") }
-               ],
+               columnDefinitions: colDefs,
                config:
                {
-                  MSG_EMPTY: this.msg("message.noTasks")
+                  MSG_EMPTY: this.msg("message.noTasks"),
+                  draggableColumns: true  
                }
             },
             paginator:
@@ -236,28 +309,67 @@
          // Override DataTable function to set custom empty message
          var me = this,
             dataTable = this.widgets.alfrescoDataTable.getDataTable(),
-            original_doBeforeLoadData = dataTable.doBeforeLoadData;
+            original_doBeforeLoadData = dataTable.doBeforeLoadData,
+            columnDefs = this.widgets.alfrescoDataTable.config.dataTable.columnDefinitions,
+            aDefinitions = dataTable._oColumnSet._aDefinitions,
+            flat = dataTable._oColumnSet.flat;
+            
+            
+         // Remove some restrictions on datatables imposed by Alfresco CSS
+         YAHOO.util.Dom.replaceClass(this.id + '-tasks', 'alfresco-datatable', 'sitetaskmgr-datatable');   
+         
+         // Alfresco changes around the formatters for some reason, but this breaks reorder, hide and resize
+         //  Put them back to their original functions     
+         orig_formatters = this.widgets.alfrescoDataTable.formatters;
+         for (var i = 0, il = columnDefs.length; i <il; i++)
+         {
+             columnDefs[i].formatter = orig_formatters[i];
+             aDefinitions[i].formatter = orig_formatters[i];
+             flat[i].formatter = orig_formatters[i];
+         }
+         
+         dataTable.subscribe("columnReorderEvent", function(a1, a2)
+         {
+            // Recalcualte and then Save preferences
+            this._saveDataTableState();
+            this.services.preferences.set(PREFERENCES_TASKS_DASHLET_COLSTATE, YAHOO.lang.JSON.stringify(this.options.colState));
+            this._refreshTaskWindow();
+         }, this, true);   
+         
+         dataTable.subscribe("columnResizeEvent", function(a1, a2)
+         {
+            // Recalcualte and then Save preferences
+            this._saveDataTableState();
+            this.services.preferences.set(PREFERENCES_TASKS_DASHLET_COLSTATE, YAHOO.lang.JSON.stringify(this.options.colState));
+            this._refreshTaskWindow();
+         }, this, true); 
+         
+         dataTable.subscribe("columnSortEvent", function(a1, a2)
+         {
+         }, this, true);
 
          dataTable.doBeforeLoadData = function SiteTaskMgr_doBeforeLoadData(sRequest, oResponse, oPayload)
          {
-            // Hide the paginator if there are fewer rows than would cause pagination
-            Dom.setStyle(this.configs.paginator.getContainerNodes(), "visibility", (oResponse.results.length == 0) ? "hidden" : "visible");
-
-            if (oResponse.results.length === 0)
+            var id = this._elContainer.id.replace("-tasks","");
+            var noItems = Dom.get(id + "-noitems");
+            var itemList = Dom.get(id + "-taskgroup");
+            
+            if(oResponse.results.length === 0)
             {
-               oResponse.results.unshift(
-               {
-                  isInfo: true,
-                  title: me.msg("empty.title"),
-                  description: me.msg("empty.description")
-               });
-               // Override display and show the column headers of the dataTable
-               this._elThead.style.display="none";
+               Dom.setStyle(itemList, "display", "none");
+               Dom.setStyle(noItems, "display", "block");
             }
             else
             {
-             // Override display and show the column headers of the dataTable
-              this._elThead.style.display="table-header-group";
+               Dom.setStyle(itemList, "display", "block");
+               Dom.setStyle(noItems, "display", "none");
+               
+               // Fix bug for YUI column resize.  Resizers get set to 0 height
+               var resizers = Dom.getElementsByClassName("yui-dt-resizer");
+               for(var kk=0; kk<resizers.length; kk++)
+               {
+                   resizers[kk].style.height = "23px";
+               }
             }
 
             return original_doBeforeLoadData.apply(this, arguments);
@@ -301,6 +413,20 @@
                     var taskId = data.id;
                     this._showEditTaskDialog(taskId, wfId);
                 }
+                else if(action=="reassignbutton")
+                {
+                    var reassign = Alfresco.util.ComponentManager.get(this.id + "-reassignPanel");
+                    var reassignPanel = reassign.widgets.reassignPanel;
+                    var finderDiv = Alfresco.util.ComponentManager.get(this.id + "-peopleFinder");
+                    reassign.taskId = data.id;
+                    reassign.wfId = wfId;
+                    
+                    finderDiv.clearResults();
+                    reassignPanel.show();
+                    
+                    var textSearch = Dom.get(finderDiv.id + "-search-text");
+                    textSearch.focus();
+                }
                 else if(action=="todone_forwardbutton")
                 {
                     var taskId = data.id;
@@ -324,6 +450,65 @@
          }, dataTable, me);
       },
       
+      _saveDataTableState: function SiteTaskMgr_saveDataTableState()
+      {
+          // Get the current state of the datatable columns
+          var cols = this.widgets.alfrescoDataTable.getDataTable().getColumnSet().getDefinitions();
+          var colStateTemp = [];  colStateTemp.length = cols.length;
+          for(var k=0; k<cols.length; k++)
+          {
+              colStateTemp[k] = {};
+              colStateTemp[k].key = cols[k].key;
+              if(cols[k].width!=null) 
+              {
+                  colStateTemp[k].width = cols[k].width;
+              }
+              else
+              {
+                  colStateTemp[k].width = "null";
+              }
+              if(cols[k].hidden!=null && cols[k].hidden==true) 
+              {
+                  colStateTemp[k].hidden = "true";
+              }
+              else
+              {
+                  colStateTemp[k].hidden = "false";
+              }
+          }
+          // Keep the local cache for the ordering
+          this.options.colState = colStateTemp;
+      },
+      
+      /**
+       * Called on reassignment of task
+       *
+       * @method onPersonSelected
+       * @param e DomEvent
+       * @param args Event parameters (depends on event type)
+       */
+      onPersonSelected: function SiteTaskManager_onPersonSelected(e, args)
+      {
+         var reassign = Alfresco.util.ComponentManager.get(this.id + "-reassignPanel");
+         var reassignPanel = reassign.widgets.reassignPanel;
+         var finderDiv = Alfresco.util.ComponentManager.get(this.id + "-peopleFinder");      
+                  
+         // This is a "global" event check that event is ours
+         if (Alfresco.util.hasEventInterest(finderDiv, args))
+         {
+            var wfId = reassign.wfId;
+            reassignPanel.hide();
+            
+            // Set the burden in the new task
+            var sFunc = function (res)
+            {            
+                // Refresh the dashlet area after the burden is set
+                this._refreshTaskWindow();
+            }
+            this._setTaskPropertyWithSuccess(wfId, "cm_owner", args[1].userName, sFunc, {});
+         }
+      },
+      
       /**
        * Closes the new task dialog popup
        *
@@ -338,7 +523,6 @@
           
           YAHOO.Bubbling.unsubscribe("formDialogFormAvailable", this.onNewTaskFormRendered);
           YAHOO.Bubbling.unsubscribe("formDialogSuccessClose", this.onNewTaskFormClose);
-          YAHOO.Bubbling.unsubscribe("formDialogCancel", this.onNewTaskFormCancel);
 
           // On successfully initiating a new workflow, set the value for burden in the new task
           if('response' in args[1])
@@ -381,7 +565,6 @@
           
           YAHOO.Bubbling.unsubscribe("formDialogFormAvailable", this.onNewTaskFormRendered);
           YAHOO.Bubbling.unsubscribe("formDialogSuccessClose", this.onNewTaskFormClose);
-          YAHOO.Bubbling.unsubscribe("formDialogCancel", this.onNewTaskFormCancel);
 
           // Close the popup window
           dialogPopup.onCancelButtonClick();
@@ -401,16 +584,6 @@
           if(!('showConfig' in popupForm) || popupForm.showConfig.itemKind!="workflow") return;
           
           var submitButton = Dom.get( elem.id + "-submit-button" );
-          var cancelButton = new YAHOO.util.Element( elem.id + "-cancel-button" );
-          
-           //  Turn on cancel click handler
-           var handleCancelClick = function(e) 
-           {
-                cancelButton.removeListener("click", handleCancelClick);         
-                var popupFrame = Alfresco.util.ComponentManager.get('alfresco-FormDialog-instance');  
-                popupFrame.onCancelButtonClick();
-            };
-            cancelButton.on('click', handleCancelClick, null, this);
           
           // Change the label on the submit button
           submitButton.innerHTML = this.msg("createform.button.submit.label");        
@@ -429,15 +602,7 @@
        */      
       onEditTaskFormClose: function SiteTaskMgr_onEditTaskFormClose(e, args)
       {  
-          var dialogPopup = Alfresco.util.ComponentManager.get('alfresco-FormDialog-instance');  
-          if(!('showConfig' in dialogPopup) || dialogPopup.showConfig.itemKind!="task") return;
-          
-          YAHOO.Bubbling.unsubscribe("formDialogFormAvailable", this.onEditTaskFormRendered);
-          YAHOO.Bubbling.unsubscribe("formDialogSuccessClose", this.onEditTaskFormClose);
-          YAHOO.Bubbling.unsubscribe("formDialogCancel", this.onEditTaskFormCancel);
-
-          // Close the popup window
-          dialogPopup.onCancelButtonClick();
+          this.onEditTaskFormCancel(e, args);
           
           // Refresh the dashlet area
           this._refreshTaskWindow();
@@ -457,7 +622,7 @@
           
           YAHOO.Bubbling.unsubscribe("formDialogFormAvailable", this.onEditTaskFormRendered);
           YAHOO.Bubbling.unsubscribe("formDialogSuccessClose", this.onEditTaskFormClose);
-          YAHOO.Bubbling.unsubscribe("formDialogCancel", this.onEditTaskFormCancel);
+
           // Close the popup window
           dialogPopup.onCancelButtonClick();
       },
@@ -476,19 +641,10 @@
           if(!('showConfig' in popupForm) || popupForm.showConfig.itemKind!="task") return;
                     
           var submitButton = Dom.get( elem.id + "-submit-button" );
-          var cancelButton = new YAHOO.util.Element( elem.id + "-cancel-button" );
                     
           // Change the label on the submit button
           submitButton.innerHTML = this.msg("editform.button.submit.label"); 
           
-           //  Turn on cancel click handler
-           var handleCancelClick = function(e) 
-           {
-                cancelButton.removeListener("click", handleCancelClick);         
-                var popupFrame = Alfresco.util.ComponentManager.get('alfresco-FormDialog-instance');  
-                popupFrame.onCancelButtonClick();
-            };
-            cancelButton.on('click', handleCancelClick, null, this);
       },
             
       /**
@@ -506,7 +662,7 @@
 
          if (!this.configDialog)
          {
-            //  Create the Configuration dialog if it does not already exist.  Thereafter it will be cached and available.
+            //  Create the Configuration dialog if it does not already exist.  
             this.configDialog = new Alfresco.module.SimpleDialog(this.id + "-configDialog").setOptions(
             {
                width: "50em",
@@ -515,17 +671,16 @@
                {
                   fn: function SiteTaskMgr_onConfigSiteTaskMgr_callback(response)
                   {
-                      // Let user know that configuration parameters were correctly updated
-                      //Alfresco.util.PopupManager.displayMessage(
-                      //{
-                      //    text: this.msg("message.success.configParamsUpdated")
-                      //});
                       this.onUpdateConfigDialogDefaults();
                       
                       // Reset the number of rows per page
                       this.widgets.alfrescoDataTable.getDataTable().configs.paginator.setRowsPerPage(this.options.maxPageItems);
                       
-                      // Simple refresh of the dashlet area
+                      // Save off any changes to hidden columns
+                      this._saveDataTableState();
+                      this.services.preferences.set(PREFERENCES_TASKS_DASHLET_COLSTATE, YAHOO.lang.JSON.stringify(this.options.colState));
+                                            
+                      // Refresh of the dashlet area
                       this._refreshTaskWindow();
                   },
                   scope: this
@@ -535,7 +690,7 @@
                   fn: function SiteTaskMgr_doSetupForm_callback(form)
                   {     
                     // Set up references for config dialog fields  
-                    this.configDialog.widgets.maxPageItems        = Dom.get(this.configDialog.id + "-maxPageItems");
+                    this.configDialog.widgets.maxPageItems = Dom.get(this.configDialog.id + "-maxPageItems");
 
                     // Add any validation functions
                     form.addValidation(this.configDialog.widgets.maxPageItems.id, Alfresco.forms.validation.mandatory, null, "blur");  
@@ -544,10 +699,71 @@
                     
                     // Set current values for the config dialog fields
                     this.onSetConfigDialogToDefaults();
+                    
+                      // Set the show/hide buttons
+                      var showhide = Dom.get( this.configDialog.id + "-show-hide-buttons" );
+                      
+                      if(showhide.innerHTML.replace(/^\s+/,"").length==0)
+                      {
+                          var dt = this.widgets.alfrescoDataTable.getDataTable();
+                        
+                          var showHideClick = function(e, oSelf) {
+                              var sKey = this.get("name");
+                              if(this.get("value") === "Hide") {
+                                  // Hides a Column
+                                  dt.hideColumn(sKey);
+                              }
+                              else {
+                                  // Shows a Column
+                                  dt.showColumn(sKey);
+                              }
+                          };
+                        
+                          // Get all the table columns
+                          var allColumns = dt.getColumnSet().keys;
+                        
+                          var templCol = document.createElement("div");
+                          YAHOO.util.Dom.addClass(templCol, "col-showhide-col");
+                          var templKey = templCol.appendChild(document.createElement("span"));
+                          YAHOO.util.Dom.addClass(templKey, "col-showhide-key");
+                          var templBtns = templCol.appendChild(document.createElement("span"));
+                          YAHOO.util.Dom.addClass(templBtns, "col-showhide-button");
+                          var onclickObj = {fn:showHideClick, obj:this, scope:false };
+            
+                        
+                          var elColumn, elKey, oButtonGrp;
+                          for(var i=0,l=allColumns.length;i<l;i++) 
+                          {
+                              var oColumn = allColumns[i];
+                            
+                              // Add the template
+                              elColumn = templCol.cloneNode(true);
+                            
+                              // The Column key
+                              elKey = elColumn.firstChild;
+                              elKey.innerHTML = this.msg("label.datatable." + oColumn.getKey());
+                            
+                              // The Button Group
+                              oButtonGrp = new YAHOO.widget.ButtonGroup({ 
+                                            id: "buttongrp"+i, 
+                                            name: oColumn.getKey(), 
+                                            container: elKey.nextSibling
+                              });
+                              oButtonGrp.addButtons([
+                                { label: this.msg("label.show"), value: this.msg("label.show"), checked: ((!oColumn.hidden)), onclick: onclickObj},
+                                { label: this.msg("label.hide"), value: this.msg("label.hide"), checked: ((oColumn.hidden)), onclick: onclickObj}
+                              ]);
+                                            
+                              showhide.appendChild(elColumn);
+                          }
+                      }
                   },
                   scope: this
                }
-            });
+            } );
+            
+            
+
          }
 
          this.configDialog.setOptions(
@@ -602,18 +818,17 @@
 
 
       
-/////////////////////////////////////////////////     
+/////////////////////////////////////////////////    
 
-      _setColumnWidth: function SiteMgr_onReady_setEmptyColumn(elCell, oColumn, widthpx, centerFlag)
+      renderNoItemsMessage: function SiteTaskMgr_renderNoItem()
       {
-            oColumn.width = widthpx;
-            Dom.setStyle(elCell, "width", oColumn.width + "px");
-            Dom.setStyle(elCell.parentNode, "width", oColumn.width + "px");
-            
-            if(centerFlag)
-            {
-                Dom.setStyle(elCell, "text-align", "center");
-            }
+          var noItems = Dom.get(this.id + "-noitems");
+          
+          var desc = '<div class="noitemsimg"><img src="' + Alfresco.constants.URL_RESCONTEXT + 'components/images/help-task-bw-32.png" /></div>';
+          desc += '<div class="empty"><h3>' + this.msg("empty.title") + '</h3>';
+          desc += '<span>' + this.msg("empty.description") + '</span></div>';
+          
+          noItems.innerHTML = desc;
       },
      
        /**
@@ -624,38 +839,32 @@
          var data = oRecord.getData(),
             desc = "";
 
-         if (data.isInfo)
+         var statename = data.name;
+         var statenameKey = "no-status";
+         var today = new Date();
+         var dueDateStr = data.properties["bpm_dueDate"];
+         var dueDate = dueDateStr ? Alfresco.util.fromISO8601(dueDateStr) : null;
+        
+         if(statename=="stmwf:assignedTask")
          {
-            this._setColumnWidth(elCell, oColumn, 52, false);
-            desc = '<img src="' + Alfresco.constants.URL_RESCONTEXT + 'components/images/help-task-bw-32.png" />';
+            if(data.properties.bpm_status=="In Progress") statenameKey="running";
+            else if(dueDate!=null && today > dueDate) statenameKey="failed";
+            else if(data.properties.bpm_status=="Not Yet Started") statenameKey="no-status";
+            else if(data.properties.bpm_status=="Completed") statenameKey="completed";
+            else if(data.properties.bpm_status=="On Hold") statenameKey="hold";
+            else if(data.properties.bpm_status=="Cancelled") statenameKey="cancelled";
          }
-         else
+         else if(statename=="stmwf:doneTask")
          {
-            var statename = data.name;
-            var statenameKey = "no-status";
-            var today = new Date();
-            var dueDateStr = data.properties["bpm_dueDate"];
-            var dueDate = dueDateStr ? Alfresco.util.fromISO8601(dueDateStr) : null;
-            
-            if(statename=="stmwf:assignedTask")
-            {
-                if(data.properties.bpm_status=="In Progress") statenameKey="running";
-                if(dueDate!=null && today > dueDate) statenameKey="failed";
-            }
-            else if(statename=="stmwf:doneTask")
-            {
-                statenameKey = "success";
-            }
-            else if(statename=="stmwf:archivedTask")
-            {
-                statenameKey = "archive";
-            }
-            
-            this._setColumnWidth(elCell, oColumn, 16, true);
+            statenameKey = "success";
+         }
+         else if(statename=="stmwf:archivedTask")
+         {
+            statenameKey = "archive";
+         }
 
-            desc = '<img src="' + Alfresco.constants.URL_RESCONTEXT + 'formtek/components/images/job-' + statenameKey + '-16.png" title="' + 
-                    this.msg("label.statename") + ': ' + this.msg("statename." + statenameKey) + '"/>';
-         }
+         desc = '<img src="' + Alfresco.constants.URL_RESCONTEXT + 'formtek/components/images/job-' + statenameKey + '-16.png" title="' + 
+                this.msg("label.statename") + ': ' + this.msg("statename." + statenameKey) + '"/>';
 
          elCell.innerHTML = desc;
       },
@@ -668,21 +877,11 @@
          var data = oRecord.getData(),
             desc = "";
 
-         if (data.isInfo)
-         {
-            desc += '<div class="empty"><h3>' + data.title + '</h3>';
-            desc += '<span>' + data.description + '</span></div>';
-            this._setColumnWidth(elCell, oColumn, 450, false);
-         }
-         else
-         {
-            var priority = data.properties["bpm_priority"],
-               priorityMap = { "1": "high", "2": "medium", "3": "low" },
-               priorityKey = priorityMap[priority + ""];
+         var priority = data.properties["bpm_priority"],
+           priorityMap = { "1": "high", "2": "medium", "3": "low" },
+           priorityKey = priorityMap[priority + ""];
 
-            this._setColumnWidth(elCell, oColumn, 14, true);
-            desc = '<img src="' + Alfresco.constants.URL_RESCONTEXT + 'components/images/priority-' + priorityKey + '-16.png" title="' + this.msg("label.priority", this.msg("priority." + priorityKey)) + '"/>';
-         }
+         desc = '<img src="' + Alfresco.constants.URL_RESCONTEXT + 'components/images/priority-' + priorityKey + '-16.png" title="' + this.msg("label.priority", this.msg("priority." + priorityKey)) + '"/>';
 
          elCell.innerHTML = desc;
       },
@@ -695,19 +894,11 @@
          var data = oRecord.getData(),
             desc = "";
 
-         if (data.isInfo)
-         {
-             this._setColumnWidth(elCell, oColumn, 0, false);
-         }
-         else
-         {
-            var burden = data.properties["stmwf_burden"].toLowerCase();
+         var burden = data.properties["stmwf_burden"].toLowerCase();
 
-            desc = '<img src="' + Alfresco.constants.URL_RESCONTEXT + 'formtek/components/images/' + burden + '-burden-16.png" title="' + 
-                 this.msg("burden." + burden) + '"/>';
-         }
+         desc = '<img src="' + Alfresco.constants.URL_RESCONTEXT + 'formtek/components/images/' + burden + '-burden-16.png" title="' + 
+             this.msg("burden." + burden) + '"/>';
 
-         this._setColumnWidth(elCell, oColumn, 14, true);
          elCell.innerHTML = desc;
       },
       
@@ -719,18 +910,10 @@
          var data = oRecord.getData(),
             desc = "";
 
-         if (data.isInfo)
-         {
-            this._setColumnWidth(elCell, oColumn, 0, false);
-         }
-         else
-         {
-            var taskname = data.workflowInstance.message;
-            var wfname = data.workflowInstance.id;
-            desc += '<h3><a href="' + $siteURL('workflow-details?workflowId=' + wfname) + '" class="theme-color-1" title="' + this.msg("label.wfname") + '">' + $html(taskname) + '</a></h3>';
-         }
+         var taskname = data.workflowInstance.message;
+         var wfname = data.workflowInstance.id;
+         desc += '<h3><a href="' + $siteURL('workflow-details?workflowId=' + wfname) + '" class="theme-color-1" title="' + this.msg("label.wfname") + '">' + $html(taskname) + '</a></h3>';
 
-         this._setColumnWidth(elCell, oColumn, 150, false);
          elCell.innerHTML = desc;
       },
 
@@ -743,23 +926,15 @@
          var data = oRecord.getData(),
             desc = "";
 
-         if (data.isInfo)
+         var assignee = data.owner;
+
+         if (!assignee || !assignee.userName)
          {
-            this._setColumnWidth(elCell, oColumn, 0, false);
+            desc = '<h3><span class="theme-bg-color-5 theme-color-5 unassigned-task">' + this.msg("assignee.unassignedTask") + '</span></h3>';
          }
          else
          {
-            var assignee = data.owner;
-
-            if (!assignee || !assignee.userName)
-            {
-               desc = '<h3><span class="theme-bg-color-5 theme-color-5 unassigned-task">' + this.msg("assignee.unassignedTask") + '</span></h3>';
-            }
-            else
-            {
-               desc += '<h3><span title="' + this.msg("label.assignee") +  ': ' + $html(assignee.firstName + ' ' + assignee.lastName) + '">' +  $html(assignee.userName) + '</span></h3>';
-            }
-            this._setColumnWidth(elCell, oColumn, 60, false);
+            desc += '<h3><span title="' + this.msg("label.assignee") +  ': ' + $html(assignee.firstName + ' ' + assignee.lastName) + '">' +  $html(assignee.userName) + '</span></h3>';
          }
 
          elCell.innerHTML = desc;
@@ -773,17 +948,9 @@
          var data = oRecord.getData(),
             desc = "";
 
-         if (data.isInfo)
-         {
-            this._setColumnWidth(elCell, oColumn, 0, false);
-         }
-         else
-         {
-            var initiator = data.workflowInstance.initiator;
+         var initiator = data.workflowInstance.initiator;
 
-            desc += '<h3><span title="' + this.msg("label.initiator") +  ': ' + $html(initiator.firstName + ' ' + initiator.lastName) + '">' +  $html(initiator.userName) + '</span></h3>';
-            this._setColumnWidth(elCell, oColumn, 60, false);
-         }
+         desc += '<h3><span title="' + this.msg("label.initiator") +  ': ' + $html(initiator.firstName + ' ' + initiator.lastName) + '">' +  $html(initiator.userName) + '</span></h3>';
 
          elCell.innerHTML = desc;
       },
@@ -796,17 +963,24 @@
          var data = oRecord.getData(),
             desc = "";
 
-         if (data.isInfo)
-         {
-            this._setColumnWidth(elCell, oColumn, 0, false);
-         }
-         else
-         {
-            var comment = data.properties["stmwf_previousComment"];
+         var comment = data.properties["bpm_comment"];
 
-            desc += '<h3><span title="' + this.msg("label.comment") + '">' +  $html(comment) + '</span></h3>';
-            this._setColumnWidth(elCell, oColumn, 110, false);
-         }
+         desc += '<h3><span title="' + this.msg("label.comment") + '">' +  $html(comment) + '</span></h3>';
+
+         elCell.innerHTML = desc;
+      },
+      
+      /**
+       * Previous Comment datacell formatter
+       */
+      renderCellPrevComment:function SiteTaskMgr_onReady_renderCellPrevComment(elCell, oRecord, oColumn, oData)
+      {
+         var data = oRecord.getData(),
+            desc = "";
+
+         var comment = data.properties["stmwf_previousComment"];
+
+         desc += '<h3><span title="' + this.msg("label.comment") + '">' +  $html(comment) + '</span></h3>';
 
          elCell.innerHTML = desc;
       },
@@ -819,17 +993,9 @@
          var data = oRecord.getData(),
             desc = "";
 
-         if (data.isInfo)
-         {
-            this._setColumnWidth(elCell, oColumn, 0, false);
-         }
-         else
-         {
-            var percentage = data.properties["bpm_percentComplete"];
+         var percentage = data.properties["bpm_percentComplete"];
 
-            desc += '<h3><span title="' + this.msg("label.percentage") + '">' + percentage + '%&nbsp;</span></h3>';
-            this._setColumnWidth(elCell, oColumn, 12, true);
-         }
+         desc += '<h3><span title="' + this.msg("label.percentage") + '">' + percentage + '%&nbsp;</span></h3>';
 
          elCell.innerHTML = desc;
       },
@@ -842,18 +1008,10 @@
          var data = oRecord.getData(),
             desc = "";
 
-         if (data.isInfo)
-         {
-            this._setColumnWidth(elCell, oColumn, 0, false);
-         }
-         else
-         {
-            var startDateStr = data.workflowInstance.startDate,
-               startDate = startDateStr ? Alfresco.util.formatDate( Alfresco.util.fromISO8601(startDateStr), "longDate") : "";
+         var startDateStr = data.workflowInstance.startDate,
+             startDate = startDateStr ? Alfresco.util.formatDate( Alfresco.util.fromISO8601(startDateStr), "mediumDate") : "";
 
-            desc += '<h3><span title="' + this.msg("label.created") + '">' +  startDate + '</span></h3>';
-            this._setColumnWidth(elCell, oColumn, 110, false);
-         }
+         desc += '<h3><span title="' + this.msg("label.created") + '">' +  startDate + '</span></h3>';
 
          elCell.innerHTML = desc;
       },
@@ -866,18 +1024,10 @@
          var data = oRecord.getData(),
             desc = "";
 
-         if (data.isInfo)
-         {
-            this._setColumnWidth(elCell, oColumn, 0, false);
-         }
-         else
-         {
-            var dueDateStr = data.workflowInstance.dueDate,
-               dueDate = dueDateStr ? Alfresco.util.formatDate( Alfresco.util.fromISO8601(dueDateStr), "longDate") : "";
+         var dueDateStr = data.properties["bpm_dueDate"],
+            dueDate = dueDateStr ? Alfresco.util.formatDate( Alfresco.util.fromISO8601(dueDateStr), "mediumDate") : "";
 
-            desc += '<h3><span title="' + this.msg("label.duedate") + '">' + dueDate + '</span></h3>';
-            this._setColumnWidth(elCell, oColumn, 110, false);
-         }
+         desc += '<h3><span title="' + this.msg("label.duedate") + '">' + dueDate + '</span></h3>';
 
          elCell.innerHTML = desc;
       },
@@ -890,36 +1040,30 @@
          var data = oRecord.getData(),
             desc = "";
 
-         if (data.isInfo)
+         // Only add for those users with sufficient privilege
+         if (data.isEditable)
          {
-            this._setColumnWidth(elCell, oColumn, 0, false);
+          
+           if(data.name=="stmwf:assignedTask")
+           {
+               desc += '<img class="todone_forwardbutton" src="' + Alfresco.constants.URL_RESCONTEXT + 'formtek/components/images/done-16.png" title="' + this.msg("label.action.forwardtodone") + '"/>&nbsp;&nbsp;';
+               desc += '<img class="reassignbutton" src="' + Alfresco.constants.URL_RESCONTEXT + 'components/images/user-16.png" title="' + this.msg("label.action.reassign") + '"/>&nbsp;&nbsp;';
+               desc += '<img class="editbutton" src="' + Alfresco.constants.URL_RESCONTEXT + 'components/images/edit-16.png" title="' + this.msg("label.action.edit") + '"/>&nbsp;&nbsp;';
+           }
+           else if(data.name=="stmwf:doneTask")
+           {
+               desc += '<img class="toassigned_backbutton" src="' + Alfresco.constants.URL_RESCONTEXT + 'components/images/back-arrow.png" title="' + this.msg("label.action.back") + '"/>&nbsp;&nbsp;';
+               desc += '<img class="toarchive_forwardbutton" src="' + Alfresco.constants.URL_RESCONTEXT + 'formtek/components/images/archive-16.png" title="' + this.msg("label.action.forwardtoarchive") + '"/>&nbsp;&nbsp;';
+               desc += '<img class="reassignbutton" src="' + Alfresco.constants.URL_RESCONTEXT + 'components/images/user-16.png" title="' + this.msg("label.action.reassign") + '"/>&nbsp;&nbsp;';
+               desc += '<img class="editbutton" src="' + Alfresco.constants.URL_RESCONTEXT + 'components/images/edit-16.png" title="' + this.msg("label.action.edit") + '"/>&nbsp;&nbsp;';
+           }
+           
+           desc += '<img class="cancelbutton" src="' + Alfresco.constants.URL_RESCONTEXT + 'components/images/delete-16.png" title="' + this.msg("label.action.cancel") + '"/>';
          }
          else
          {
-            // Only add for those users with sufficient privilege
-            if (data.isEditable)
-            {
-              
-               if(data.name=="stmwf:assignedTask")
-               {
-                   desc += '<img class="todone_forwardbutton" src="' + Alfresco.constants.URL_RESCONTEXT + 'components/images/forward-arrow-16.png" title="' + this.msg("label.action.forward") + '"/>&nbsp;&nbsp;';
-                   desc += '<img class="editbutton" src="' + Alfresco.constants.URL_RESCONTEXT + 'components/images/edit-16.png" title="' + this.msg("label.action.edit") + '"/>&nbsp;&nbsp;';
-               }
-               else if(data.name=="stmwf:doneTask")
-               {
-                   desc += '<img class="toassigned_backbutton" src="' + Alfresco.constants.URL_RESCONTEXT + 'components/images/back-arrow.png" title="' + this.msg("label.action.back") + '"/>&nbsp;&nbsp;';
-                   desc += '<img class="toarchive_forwardbutton" src="' + Alfresco.constants.URL_RESCONTEXT + 'formtek/components/images/archive-16.png" title="' + this.msg("label.action.forward") + '"/>&nbsp;&nbsp;';
-                   desc += '<img class="editbutton" src="' + Alfresco.constants.URL_RESCONTEXT + 'components/images/edit-16.png" title="' + this.msg("label.action.edit") + '"/>&nbsp;&nbsp;';
-               }
-               
-               desc += '<img class="cancelbutton" src="' + Alfresco.constants.URL_RESCONTEXT + 'components/images/delete-16.png" title="' + this.msg("label.action.cancel") + '"/>';
-            }
-            else
-            {
-               desc += '<img class="editbutton-disabled" src="' + Alfresco.constants.URL_RESCONTEXT + 'components/images/edit-disabled-16.png" title="' + this.msg("label.action.edit") + '"/>&nbsp;&nbsp;';
-               desc += '<img class="cancelbutton-disabled" src="' + Alfresco.constants.URL_RESCONTEXT + 'components/images/delete-disabled-16.png" title="' + this.msg("label.action.cancel") + '"/>';
-            }
-            this._setColumnWidth(elCell, oColumn, 150, false);
+           desc += '<img class="editbutton-disabled" src="' + Alfresco.constants.URL_RESCONTEXT + 'components/images/edit-disabled-16.png" title="' + this.msg("label.action.edit") + '"/>&nbsp;&nbsp;';
+           desc += '<img class="cancelbutton-disabled" src="' + Alfresco.constants.URL_RESCONTEXT + 'components/images/delete-disabled-16.png" title="' + this.msg("label.action.cancel") + '"/>';
          }
 
          elCell.innerHTML = desc;
@@ -952,9 +1096,7 @@
 
           // Listen for when the popup form dialog closes on success to know when to refresh
           YAHOO.Bubbling.on("formDialogSuccessClose", this.onEditTaskFormClose, this);
-      
-          // Listen for when the popup form dialog closes on cancel to know when to refresh
-          YAHOO.Bubbling.on("formDialogCancel", this.onEditTaskFormCancel, this);
+
       },
       
       
@@ -1098,12 +1240,6 @@
               feedbackMessage.destroy();
               if (res.json && res.json.success)
               {
-                var dt = this.widgets.alfrescoDataTable.getDataTable();
-                if(dt._oRecordSet._records.length==1)
-                {
-                    //  Hide column headers when there are no rows left
-                    dt._elThead.style.display="none";
-                }
                 this._refreshTaskWindow();
               }
               else

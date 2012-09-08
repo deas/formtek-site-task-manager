@@ -102,6 +102,7 @@ public class SiteTaskInstancesGet extends AbstractWorkflowWebscript
     private WorkflowTaskInitiatorAscComparator taskWFInitiatorComparator = new WorkflowTaskInitiatorAscComparator();
     private WorkflowTaskPercentAscComparator taskWFPercentCompleteComparator = new WorkflowTaskPercentAscComparator();
     private WorkflowCommentAscComparator taskCommentComparator = new WorkflowCommentAscComparator();
+    private WorkflowPrevCommentAscComparator taskPrevCommentComparator = new WorkflowPrevCommentAscComparator();
     
     
 
@@ -370,6 +371,18 @@ public class SiteTaskInstancesGet extends AbstractWorkflowWebscript
                 else
                 {
                     Collections.sort(allTasks, Collections.reverseOrder(taskCommentComparator));
+                }
+            }
+            else if(sortColumn.equals("prevcomment"))
+            {
+                logger.debug("Sort by previous comment");
+                if(sortDirection.equals("asc"))
+                {
+                    Collections.sort(allTasks, taskPrevCommentComparator);
+                }
+                else
+                {
+                    Collections.sort(allTasks, Collections.reverseOrder(taskPrevCommentComparator));
                 }
             }
             else
@@ -729,15 +742,23 @@ public class SiteTaskInstancesGet extends AbstractWorkflowWebscript
          logger.debug("AssignTaskValue:  " + id + " : " + status + " : " +d);
          //  Valid Task id and combinations are:
          //      stmwf:assignedTask
+         //      stmwf:assignedTask + Not Yet Started
          //      stmwf:assignedTask + In Progress
          //      stmwf:assignedTask + Past Due Date
+         //      stmwf:assignedTask + Completed
+         //      stmwf:assignedTask + On Hold
+         //      stmwf:assignedTask + Cancelled
          //      stmwf:doneTask
          //      stmwf:archivedTask
          if(id.equals("stmwf:assignedTask"))
          {
              Date today = new Date();
              if(d!=null && today.after(d)) return 3;
+             if(status.equals("Not Yet Started")) return 1;
              if(status.equals("In Progress")) return 2;
+             if(status.equals("Completed")) return 6;
+             if(status.equals("On Hold")) return 7;
+             if(status.equals("Cancelled")) return 8;
              return 1;
          }
          else if(id.equals("stmwf:doneTask"))
@@ -788,6 +809,7 @@ public class SiteTaskInstancesGet extends AbstractWorkflowWebscript
       }
 
    }
+   
    
     /**
      * Comparator to sort workflow tasks by assignee in ascending order.
@@ -893,6 +915,26 @@ public class SiteTaskInstancesGet extends AbstractWorkflowWebscript
         @Override
       public int compare(WorkflowTask o1, WorkflowTask o2)
       {
+         String comment1 = (String)o1.getProperties().get(WorkflowModel.PROP_COMMENT);
+         String comment2 = (String)o2.getProperties().get(WorkflowModel.PROP_COMMENT);
+         
+         logger.debug("comparing: " + comment1 + " to " + comment2);
+         
+         if (comment1 == null && comment2 == null) return 0;
+         if (comment1 == null) return -1;
+         if (comment2 == null) return 1;
+         return (comment1).compareTo(comment2);
+      }
+   }  
+   
+     /**
+     * Comparator to sort workflow tasks by the 'previous comment' in ascending order.
+     */
+   class WorkflowPrevCommentAscComparator implements Comparator<WorkflowTask>
+   {
+        @Override
+      public int compare(WorkflowTask o1, WorkflowTask o2)
+      {
          String comment1 = (String)o1.getProperties().get(SiteTaskManagerWorkflowModel.PROP_PREVIOUSCOMMENT);
          String comment2 = (String)o2.getProperties().get(SiteTaskManagerWorkflowModel.PROP_PREVIOUSCOMMENT);
          
@@ -904,6 +946,7 @@ public class SiteTaskInstancesGet extends AbstractWorkflowWebscript
          return (comment1).compareTo(comment2);
       }
    }  
+   
     protected Map<String, Object> createResultModel1(WebScriptRequest req, String dataPropertyName, 
                 List<Map<String, Object>> results)
     {

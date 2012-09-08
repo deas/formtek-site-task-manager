@@ -9,6 +9,10 @@
             <div class="yui-u first"><label for="${el}-maxPageItems">${msg("config.label.maxPageItems")}:</label></div>
             <div class="yui-u"><input id="${el}-maxPageItems" type="text" name="maxPageItems" value=""/><span class="sup_mandatory">&nbsp;*</span></div>
          </div>
+         <div class="yui-gd">
+            <div class="yui-u first"><label for="${el}-colHidden">${msg("config.label.colHidden")}:</label></div>
+            <div class="yui-u"> <div class="hidewrapper"> <div id="${el}-show-hide-buttons" class="col-config"> </div> </div> </div>
+         </div>
 
          <div class="bdft">
             <input type="submit" id="${el}-ok" value="${msg("button.ok")}" />
