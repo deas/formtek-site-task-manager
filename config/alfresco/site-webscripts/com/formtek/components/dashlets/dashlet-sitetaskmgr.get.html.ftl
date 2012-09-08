@@ -25,13 +25,13 @@
    {
       actions:
       [
-<#if userIsSiteManager>
+<!-- #if userIsSiteManager -->
          {
             cssClass: "edit",
             eventOnClick: editDashletEvent,
             tooltip: "${msg("dashlet.edit.tooltip")?js_string}"
          },
-</#if>
+<!-- /#if -->
          {
             cssClass: "help",
             bubbleOnClick:
