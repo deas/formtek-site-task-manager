@@ -18,6 +18,8 @@
    var editDashletEvent = new YAHOO.util.CustomEvent("onDashletConfigure");
    editDashletEvent.subscribe(siteTaskMgr.onConfigSiteTaskMgrClick, siteTaskMgr, true);
    
+   new Formtek.component.TaskReassign("${args.htmlid}").setOptions(
+   { }).setMessages(${messages});
    
    new Alfresco.widget.DashletTitleBarActions("${args.htmlid}").setOptions(
    {
@@ -71,12 +73,30 @@
       </div>
    </div>
 
-   <div class="body scrollableList" <#if args.height??>style="height: ${args.height}px;"</#if>>
-      <div class="yui-u">
-          <div id="${id}-tasks"></div>
+   <div class="body scrollableList" id="${id}-dtbody" <#if args.height??>style="height: ${args.height}px;"</#if>>
+      <div id="${id}-taskgroup">
+          <div class="yui-u no-margin">
+              <div id="${id}-tasks"></div>
+          </div>
+          <div class="yui-u center-paginator">
+             <div id="${id}-paginator" class="paginator">&nbsp;</div>
+          </div>
       </div>
-      <div class="yui-u center-paginator">
-         <div id="${id}-paginator" class="paginator">&nbsp;</div>
+      <div class="yui-u">
+          <div id="${id}-noitems" class="noitems"></div>
       </div>
    </div>
+   
+   <!-- People Finder Dialog -->
+   <div style="display: none;">
+      <div id="${id}-reassignPanel" class="task-reassign reassign-panel">
+         <div class="hd">${msg("panel.reassign.header")}</div>
+         <div class="bd thin-borders">
+            <div style="margin: auto 10px;">
+               <div id="${id}-peopleFinder"></div>
+            </div>
+         </div>
+      </div>
+   </div>
+
 </div>

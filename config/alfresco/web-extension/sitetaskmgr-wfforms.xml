@@ -29,8 +29,8 @@
                <show id="stmwf:siteName" />
             </field-visibility>
             <appearance>
-               <set id="" appearance="title" label-id="workflow.set.task.info" />
-               <set id="info" appearance=""  />
+               <set id="" appearance="" />
+               <set id="info" template="/com/formtek/components/form/ftk-3-column-set.ftl" appearance=""  />
                <set id="assignee" appearance="title" label-id="workflow.set.assignee" />
                <set id="progress" appearance="title" label-id="workflow.set.task.progress" />
                <set id="items" appearance="title" label-id="workflow.set.items" />
@@ -104,8 +104,8 @@
                <show id="stmwf:taskOutcome" />
             </field-visibility>
             <appearance>
-               <set id="" appearance="title" label-id="workflow.set.task.info" />
-               <set id="info" appearance="" template="/org/alfresco/components/form/3-column-set.ftl" />
+               <set id="" appearance="title" />
+               <set id="info" appearance="" template="/com/formtek/components/form/ftk-3-column-set.ftl" />
                <set id="progress" appearance="title" label-id="workflow.set.task.progress" />
                <set id="items" appearance="title" label-id="workflow.set.items" />
                <set id="response" appearance="title" label-id="workflow.set.response" />
@@ -154,28 +154,27 @@
                <show id="bpm:status" />
                <show id="bpm:dueDate" />
                <show id="packageItems" />
-               <show id="bpm:assignee" />
                <show id="bpm:comment" />
             </field-visibility>
             <appearance>
+               <set id="name"  appearance="" />
+               <set id="info" appearance="" template="/com/formtek/components/form/ftk-3-column-set.ftl" />
+               <set id="top" appearance="" />
                <field id="stmwf:wfName" label-id="stmwf_workflowmodel.field.message.label" 
-                  description-id="stmwf_workflowmodel.field.message.description">
+                  description-id="stmwf_workflowmodel.field.message.description" set="name">
                   <control template="/org/alfresco/components/form/controls/info.ftl" />
                </field>               
-               <field id="bpm:priority">
+               <field id="bpm:priority" set="info">
                   <control template="/org/alfresco/components/form/controls/workflow/priority.ftl" />
                </field>
-               <field id="stmwf:burden" label-id="stmwf_workflowmodel.field.stmwf_burden.label" label-description="stmwf_workflowmodel.field.stmwf_burden.description" />
-               <field id="bpm:assignee" set="info" >
-                   <control template="/org/alfresco/components/form/controls/authority.ftl" />
-               </field>
-               <field id="bpm:dueDate" label-id="workflow.field.due">
+               <field id="stmwf:burden" set="info" label-id="stmwf_workflowmodel.field.stmwf_burden.label" label-description="stmwf_workflowmodel.field.stmwf_burden.description" />
+               <field id="bpm:dueDate" set="info" label-id="workflow.field.due">
                    <control template="/org/alfresco/components/form/controls/date.ftl" />
                </field>
-               <field id="bpm:status" />
-               <field id="bpm:percentComplete" />
-               <field id="packageItems" />
-               <field id="bpm:comment" label-id="workflow.field.comment">
+               <field id="bpm:status" set="top"/>
+               <field id="bpm:percentComplete" set="top"/>
+               <field id="packageItems" set="top"/>
+               <field id="bpm:comment" label-id="workflow.field.comment" set="top">
                   <control template="/org/alfresco/components/form/controls/textarea.ftl">
                      <control-param name="style">width: 95%</control-param>
                   </control>
@@ -200,8 +199,8 @@
                <show id="stmwf:doneOutcome" />
             </field-visibility>
             <appearance>
-               <set id="" appearance="title" label-id="workflow.set.task.info" />
-               <set id="info" appearance="" template="/org/alfresco/components/form/3-column-set.ftl" />
+               <set id="" appearance="title" />
+               <set id="info" appearance="" template="/com/formtek/components/form/ftk-3-column-set.ftl" />
                <set id="progress" appearance="title" label-id="workflow.set.task.progress" />
                <set id="items" appearance="title" label-id="workflow.set.items" />
                <set id="response" appearance="title" label-id="workflow.set.response" />
@@ -241,28 +240,27 @@
                <show id="bpm:status" />
                <show id="bpm:dueDate" />
                <show id="packageItems" />
-               <show id="bpm:assignee" />
                <show id="bpm:comment" />
             </field-visibility>
             <appearance>
+               <set id="name"  appearance="" />
+               <set id="info" appearance="" template="/com/formtek/components/form/ftk-3-column-set.ftl" />
+               <set id="top" appearance="" />
                <field id="stmwf:wfName" label-id="stmwf_workflowmodel.field.message.label" 
-                  description-id="stmwf_workflowmodel.field.message.description">
+                  description-id="stmwf_workflowmodel.field.message.description" set="name">
                   <control template="/org/alfresco/components/form/controls/info.ftl" />
                </field>               
-               <field id="bpm:priority">
+               <field id="bpm:priority" set="info">
                   <control template="/org/alfresco/components/form/controls/workflow/priority.ftl" />
                </field>
-               <field id="stmwf:burden" label-id="stmwf_workflowmodel.field.stmwf_burden.label" label-description="stmwf_workflowmodel.field.stmwf_burden.description" />
-               <field id="bpm:assignee" set="info" >
-                   <control template="/org/alfresco/components/form/controls/workflow/taskowner.ftl" />
-               </field>
-               <field id="bpm:dueDate" label-id="workflow.field.due">
+               <field id="stmwf:burden" set="info" label-id="stmwf_workflowmodel.field.stmwf_burden.label" label-description="stmwf_workflowmodel.field.stmwf_burden.description" />
+               <field id="bpm:dueDate" set="info" label-id="workflow.field.due">
                    <control template="/org/alfresco/components/form/controls/date.ftl" />
                </field>
-               <field id="bpm:status" />
-               <field id="bpm:percentComplete" />
-               <field id="packageItems" />
-               <field id="bpm:comment" label-id="workflow.field.comment">
+               <field id="bpm:status" set="top" />
+               <field id="bpm:percentComplete" set="top" />
+               <field id="packageItems" set="top" />
+               <field id="bpm:comment" label-id="workflow.field.comment" set="top">
                   <control template="/org/alfresco/components/form/controls/textarea.ftl">
                      <control-param name="style">width: 95%</control-param>
                   </control>
@@ -288,7 +286,7 @@
             </field-visibility>
             <appearance>
                <set id="" appearance="title" label-id="workflow.set.task.info" />
-               <set id="info" appearance="" template="/org/alfresco/components/form/3-column-set.ftl" />
+               <set id="info" appearance="" template="/com/formtek/components/form/ftk-3-column-set.ftl" />
                <set id="progress" appearance="title" label-id="workflow.set.task.progress" />
                <set id="items" appearance="title" label-id="workflow.set.items" />
                <set id="response" appearance="title" label-id="workflow.set.response" />

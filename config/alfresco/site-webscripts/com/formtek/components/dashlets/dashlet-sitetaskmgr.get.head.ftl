@@ -2,6 +2,9 @@
 <!-- Workflow Actions -->
 <@script type="text/javascript" src="${page.url.context}/res/components/workflow/workflow-actions.js"></@script>
 
+<!-- For User Preferences configuration -- Simple Dialog -->
+<@script type="text/javascript" src="${page.url.context}/res/modules/simple-dialog.js"></@script>
+
 <!-- Formtek Site Task Manager -->
 <@link rel="stylesheet" type="text/css" href="${page.url.context}/res/formtek/components/dashlets/sitetaskmgr.css" />
 <@link rel="stylesheet" type="text/css" href="${page.url.context}/res/formtek/components/form/sitetaskmgrwf.css" />
@@ -23,3 +26,11 @@
 <@script type="text/javascript" src="${page.url.context}/res/components/people-finder/people-finder.js"></@script>
 <@script type="text/javascript" src="${page.url.context}/res/components/object-finder/object-finder.js"></@script>
 <@script type="text/javascript" src="${page.url.context}/res/yui/calendar/calendar.js"></@script>
+
+<!-- People Finder -->
+<@link rel="stylesheet" type="text/css" href="${page.url.context}/res/components/people-finder/people-finder.css" />
+<@script type="text/javascript" src="${page.url.context}/res/components/people-finder/people-finder.js"></@script>
+
+<!-- Task Reassign Header -->
+<@link rel="stylesheet" type="text/css" href="${page.url.context}/res/formtek/components/workflow/reassign.css" />
+<@script type="text/javascript" src="${page.url.context}/res/formtek/components/workflow/reassign.js"></@script>

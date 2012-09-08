@@ -71,6 +71,7 @@
          </overrides>
          <mandatory-aspects>
             <aspect>stmwf:wfProps</aspect>
+            <aspect>bpm:assignee</aspect>
          </mandatory-aspects>
       </type>
       

@@ -9,24 +9,26 @@
 
 .form-dialog .bd 
 {
-	 padding: 10px 10px 10px 10px !important;
-	 width: 800px !important;
+     padding: 10px 10px 10px 10px !important;
+     width: 800px !important;
 }
 .form-dialog .hd 
 {
-	 width: 800px !important;
+     width: 800px !important;
 }
 .form-dialog .form-field 
 {
-	 text-align: left !important;
+     text-align: left !important;
 }
 form-dialog .form-container .form-fields
 {
-	padding: 1em 1em 0 !important;
-	width: 800px !important;
-	border: 1px solid #C2C2C2 !important;
-	background-color: #F5FFF2;
+    padding: 1em 1em 0 !important;
+    width: 800px !important;
+    border: 1px solid #C2C2C2 !important;
+    background-color: #F5FFF2;
 }
+
+
 
 
 
