@@ -1,11 +1,15 @@
 Formtek Site Task Manager Dashlet
 ---------------------------------
 
-Version .01  [Build 2]
-September 8, 2012
+Version .01  [Build 3]
+September 9, 2012
+Works best in Chrome.  Also Firefox, IE7 and IE8.
+[A number of problems were noted in IE9, but some of the same problems were also seen in standard Share, 
+like the dashlet configuration dialog not centering or dragging correctly, and the dialog to add new items
+to the workflow package not functioning.]
 
-Installation
-------------
+Build
+-----
 
 The Formtek Site Task Management dashlet is an add-on that was developed to target an Alfresco 4.0.2.X installation.
 
@@ -24,12 +28,16 @@ Other command-line build options are available.
 If the build is successful, you should find the newly built jar file in the build/dist directory.
 By default, this file will be named: ftk-sitetaskmgr-dashlet0_01.jar
 
-Make sure your Alfresco server isn't running and then copy this jar file to the lib area in both the exploded Alfresco and Share war areas 
+
+Installation
+------------
+
+Make sure your Alfresco server isn't running and then copy ftk-sitetaskmgr-dashlet0_01.jar to the lib area in both the exploded Alfresco and Share war areas 
 [with the assumption that you're using tomcat]:
 
-<ALFRESCOHOME>/tomcat/webapps/alfresco/WEB-INF/lib
+<ALFRESCO_HOME>/tomcat/webapps/alfresco/WEB-INF/lib
 and
-<ALFRESCOHOME>/tomcat/webapps/share/WEB-INF/lib
+<ALFRESCO_HOME>/tomcat/webapps/share/WEB-INF/lib
 
 Restart the Alfresco server and the Alfresco Share application.
 
@@ -50,8 +58,8 @@ The Site Task Manager associates tasks to a site.  Because of that, it is only p
 [You could have multiple dashlets, but they'd be displaying the same information.]
 Each site that the dashlet is installed into will uniquely track the tasks that were created in that site.
 
-Site task workflows are different from standard Alfresco workflows because they are visible to all site members (or anyone who has
-permissions to navigate into the site), not just to the initiator or to those people to whom tasks have been assigned.
+Site task workflows are different from standard Alfresco workflows because they are visible to all site members, not just to the 
+initiator or to those people to whom tasks have been assigned.
 
 There are 12 columns used in the site task list.  Because 12 columns can take a lot of real estate on the dashboard, the standard look
 of the task list can be reconfigured.
