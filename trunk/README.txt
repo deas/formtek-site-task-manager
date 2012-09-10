@@ -13,6 +13,12 @@ Build
 
 The Formtek Site Task Management dashlet is an add-on that was developed to target an Alfresco 4.0.2.X installation.
 
+The source code for the project can be downloaded using SVN from Google Code at this URL:
+http://code.google.com/p/formtek-site-task-manager/source/checkout
+
+The Subversion download command is as follows:
+svn checkout http://formtek-site-task-manager.googlecode.com/svn/trunk/ formtek-site-task-manager-read-only
+
 The project uses version 1.6 of the standard Alfresco build script for add-ons written and maintained by Will Abson.
 This is an ant-based script, so the assumption is that Java and ant are installed on the build machine and available.
 Building the Site Task Manager also requires a compile of some Java code which needs to link to the Alfresco API, so
