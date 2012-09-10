@@ -685,6 +685,17 @@
                   },
                   scope: this
                },
+//               doBeforeDialogShow:
+//               {
+//                  fn: function (e, args)
+//                  {
+//                      // IE9 draggable dialog isn't working.  Stop it for now
+//                      var oldConfig = this.configDialog.dialog.cfg.getConfig();
+//                      oldConfig.draggable = false;
+//                      this.configDialog.dialog.cfg.applyConfig( oldConfig, true );
+//                  },
+//                  scope: this
+//               },
                doSetupFormsValidation:
                {
                   fn: function SiteTaskMgr_doSetupForm_callback(form)
