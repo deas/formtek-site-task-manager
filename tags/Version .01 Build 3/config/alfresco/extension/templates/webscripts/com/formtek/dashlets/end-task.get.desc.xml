@@ -1,0 +1,22 @@
+<webscript>
+   <shortname>Signal transition the Workflow Path</shortname>
+   <description>Signal transition of the Workflow path to move to the next node.</description>
+   <url>/api/formtek/dashlet/projtaskmgr/end-task?task_id={task_id}&amp;site={site}&amp;transition={transition}</url>
+   <format default="json"/>
+   <authentication runas="admin">user</authentication>
+   <transaction>required</transaction>
+   <args>
+      <arg>
+         <shortname>workflow_instance_id</shortname>
+         <description>The id of workflow process instance to delete or cancel.</description>
+      </arg>
+      <arg>
+         <shortname>site</shortname>
+         <description>The Share site that this workflow is associated with.</description>
+      </arg>
+      <arg>
+         <shortname>transition</shortname>
+         <description>The name of the workflow transition from the current node</description>
+      </arg>
+   </args>
+</webscript>
