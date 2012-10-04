@@ -77,6 +77,7 @@ public class SiteTaskInstancesGet extends AbstractWorkflowWebscript
     public static final String TASK_ASSIGNED_MODEL = "stmwf:assignedTask";
     public static final String TASK_DONE_MODEL = "stmwf:doneTask";
     public static final String TASK_ARCHIVED_MODEL = "stmwf:archivedTask";
+    public static final String TASK_ASSIGNED_TO_ME = "AssignedToMe";
     public static final String TASK_ASSIGNED = "Assigned";
     public static final String TASK_DONE = "Done";
     public static final String TASK_ARCHIVED = "Archived";
@@ -611,6 +612,16 @@ public class SiteTaskInstancesGet extends AbstractWorkflowWebscript
                         if(task.getName().equals(TASK_ASSIGNED_MODEL) || task.getName().equals(TASK_DONE_MODEL))
                         {
                             result = true;
+                        }
+                    }
+                    else if (filterValue.equals(TASK_ASSIGNED_TO_ME) )
+                    {
+                        String currentUser = authenticationService.getCurrentUserName();
+                        String assignee = (String)task.getProperties().get(ContentModel.PROP_OWNER);
+                        logger.debug("Checking assignee versus current user: " + assignee + " : " + currentUser);
+                        if(assignee==null || !assignee.equals(currentUser))
+                        {
+                            result = false;
                         }
                     }
                     else if (filterValue.equals(TASK_DONE) && task.getName().equals(TASK_DONE_MODEL) )

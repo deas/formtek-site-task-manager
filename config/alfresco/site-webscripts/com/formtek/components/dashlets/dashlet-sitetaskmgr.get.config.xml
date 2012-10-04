@@ -2,6 +2,7 @@
    <max-items>50</max-items>
    <filter-menu>
       <filter type="allTasks"              parameters=""/>
+      <filter type="tasksAssignedToMe"     parameters="taskType=AssignedToMe"/>
       <filter type="highPriorityTasks"     parameters="priority=1"/>
       <filter type="assignedTasks"         parameters="taskType=Assigned"/>
       <filter type="archivedTasks"         parameters="taskType=Archived"/>

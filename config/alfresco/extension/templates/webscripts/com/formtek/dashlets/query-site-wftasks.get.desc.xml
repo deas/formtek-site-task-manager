@@ -27,7 +27,7 @@
       </arg>
       <arg>
          <shortname>taskType</shortname>
-         <description>Determines which state the tasks are in:  Assigned, Done, Archived, or DoneAndAssigned</description>
+         <description>Determines which state the tasks are in:  Assigned, AssignedToMe, Done, Archived, or DoneAndAssigned</description>
       </arg>
       <arg>
          <shortname>dueBefore</shortname>
