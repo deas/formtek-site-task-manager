@@ -1,0 +1,6 @@
+<webscript>
+  <shortname>Site Task Manager Config Post</shortname>
+  <description>POST webscript of configuration dialog for Site Task Manager dashlet</description>
+  <url>/formtek/modules/dashlet/sitetaskmgr/config/{componentId}</url>
+  <format default="json">argument</format>
+</webscript>

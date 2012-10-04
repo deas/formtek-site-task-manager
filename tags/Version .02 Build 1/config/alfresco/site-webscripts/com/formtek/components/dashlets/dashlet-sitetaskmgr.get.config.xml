@@ -1,0 +1,14 @@
+<config>
+   <max-items>50</max-items>
+   <filter-menu>
+      <filter type="allTasks"              parameters=""/>
+      <filter type="tasksAssignedToMe"     parameters="taskType=AssignedToMe"/>
+      <filter type="highPriorityTasks"     parameters="priority=1"/>
+      <filter type="assignedTasks"         parameters="taskType=Assigned"/>
+      <filter type="archivedTasks"         parameters="taskType=Archived"/>
+      <filter type="doneTasks"             parameters="taskType=Done"/>
+      <filter type="doneAndAssignedTasks"  parameters="taskType=DoneAndAssigned"/>
+      <filter type="tasksDueToday"         parameters="dueAfter={-1d}&amp;dueBefore={0d}"/>
+      <filter type="overdueTasks"          parameters="dueBefore={-1d}"/>
+   </filter-menu>
+</config>
